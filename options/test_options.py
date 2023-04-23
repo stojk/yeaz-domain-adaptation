@@ -1,0 +1,32 @@
+from .base_options import BaseOptions
+
+
+class TestOptions(BaseOptions):
+    """This class includes test options.
+
+    It also includes shared options defined in BaseOptions.
+    """
+
+    def initialize(self, parser):
+        parser = BaseOptions.initialize(self, parser)  # define shared options
+
+        # Add Style Transfer options
+        parser.add_argument('--results_dir', type=str, default='./results/', help='saves results here.')
+        parser.add_argument('--phase', type=str, default='test', help='train, val, test, etc')
+        # Dropout and Batchnorm has different behavioir during training and test.
+        parser.add_argument('--eval', action='store_true', help='use eval mode during test time.')
+        parser.add_argument('--num_test', type=int, default=100, help='how many test images to run')
+
+        # Add YeaZ options
+        parser.add_argument('--path_to_weights', default=None, type=str, help="Specify weights path.")
+        parser.add_argument('--threshold', default=None, type=float, help="Specify threshold value.")
+        parser.add_argument('--min_seed_dist', default=5, type=int, help="Specify minimum distance between seeds.")
+        parser.add_argument('--min_epoch', default=1, type=int, help="Specify min epoch.")
+        parser.add_argument('--max_epoch', default=200, type=int, help="Specify max epoch.")
+        parser.add_argument('--epoch_step', default=1, type=int, help="Specify epoch step.")
+        parser.add_argument('--metrics_path', default=None, type=str, help="Specify where to save metrics path.")
+
+        # To avoid cropping, the load_size should be the same as crop_size
+        parser.set_defaults(load_size=parser.get_default('crop_size'))
+        self.isTrain = False
+        return parser
