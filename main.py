@@ -180,6 +180,7 @@ def yeaz_metrics(
     """
     avg_metrics_per_epoch = {}
     for epoch in epoch_range:
+        J, SD, Jc = [], [], []
 
         generated_images_path = os.path.join(
             style_transfer_path,'test_{}'.format(epoch),f'images/fake_{target_domain}')
@@ -187,10 +188,6 @@ def yeaz_metrics(
             filename for filename in os.listdir(generated_images_path) 
             if not filename.endswith('.h5')
         ]
-        
-        J = []
-        SD = []
-        Jc = []
 
         for image_name in image_names:
             
