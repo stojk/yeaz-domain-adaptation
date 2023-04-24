@@ -1,3 +1,34 @@
+#!/usr/bin/env python3
+""" Domain adaptation for segmentation of microscopy images using CycleGAN and YeaZ. 
+
+This script performs style transfer on images in opt.dataroot,
+then performs segmentation on the style transferred images, 
+and finally evaluates metrics on the segmented images.
+
+Example:
+    $ python main.py \
+        --dataroot GT_DATA_FOLDER \
+        --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER (i.e. D:/GAN_grid_search) \
+        --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING (i.e. cyclegan_lambda_A_100_lambda_B_10_trial_2) \
+        --model cycle_gan \
+        --preprocess none \
+        --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS (i.e. ./yeaz/unet/weights_budding_BF.pt) \
+        --threshold 0.5 \
+        --min_seed_dist 3 \
+        --min_epoch 1 \
+        --max_epoch 201 \
+        --epoch_step 5 \
+        --results_dir RESULTS_FOLDER (i.e. D:/GAN_grid_search/results)
+        --metrics_path METRICS_PATH (i.e. D:/GAN_grid_search/results/metrics.csv)
+
+    other options:
+        --original_domain A (default) or B (i.e. if GT images are in B domain, specify B)
+        --skip_style_transfer (i.e. if style transfer has already been performed, skip)
+        --skip_segmentation (i.e. if segmentation has already been performed, skip)
+        --skip_metrics (i.e. if metrics have already been evaluated, skip)
+
+"""
+
 import argparse
 import os
 import sys
@@ -7,11 +38,11 @@ import numpy as np
 sys.path.append("./cycle_gan")
 
 import metrics.metrics as metrics
-# from cycle_gan.data import create_dataset
-# from cycle_gan.models import create_model
-# from cycle_gan.util import html
-# from cycle_gan.util.visualizer import save_images
+from cycle_gan.data import create_dataset
+from cycle_gan.models import create_model
 from options.test_options import TestOptions
+from util import html
+from util.visualizer import save_images
 from yeaz.predict import YeazPredict as yeaz_predict
 
 
@@ -38,11 +69,13 @@ def initialzie_options() -> argparse.Namespace:
     opt.no_flip = True
     # no visdom display; the test code saves the results to a HTML file.
     opt.display_id = -1
+    # specify target domain
+    opt.target_domain = 'B' if opt.original_domain == 'A' else 'A'
     
     ### Metrics options ###
     # Set output metrics path if not specified
     if opt.metrics_path is None:
-        opt.metrics_path = os.path.join(opt.results_dir, opt.name, 'metrics')
+        opt.metrics_path = os.path.join(opt.results_dir, opt.name, 'metrics.csv')
 
     return opt
 
@@ -103,7 +136,7 @@ def yeaz_segmentation(
     for epoch in epoch_range:
 
         generated_images_path = os.path.join(
-            style_transfer_path,'test_{}'.format(epoch),'images/fake_B')
+            style_transfer_path,f'test_{epoch}/images/fake_{opt.target_domain}')
         image_names = [
             filename for filename in os.listdir(generated_images_path) 
             if not filename.endswith('.h5')
@@ -123,13 +156,15 @@ def yeaz_segmentation(
                 timepoints=[0,0],
                 threshold=0.5,
                 min_seed_dist=opt.min_seed_dist,
-                weights_path=opt.path_to_weights
+                weights_path=opt.path_to_yeaz_weights
             )
 
 def yeaz_metrics(
     epoch_range: range, 
     gt_path: str, 
-    style_transfer_path: str
+    style_transfer_path: str,
+    original_domain: str,
+    target_domain: str
 ) -> None:
     """Evaluate metrics on style transferred and segmented images
 
@@ -137,6 +172,8 @@ def yeaz_metrics(
         epoch_range: Range of epochs to evaluate metrics on
         gt_path: Path to ground truth images
         style_transfer_path: Path to style transferred images and masks
+        original_domain: Domain of original images
+        target_domain: Domain of style transferred images
     
     Returns:
         Dictionary of average metrics (J, SD, Jc) on segmented style transferred images for each epoch
@@ -145,7 +182,7 @@ def yeaz_metrics(
     for epoch in epoch_range:
 
         generated_images_path = os.path.join(
-            style_transfer_path,'test_{}'.format(epoch),'images/fake_B')
+            style_transfer_path,'test_{}'.format(epoch),f'images/fake_{target_domain}')
         image_names = [
             filename for filename in os.listdir(generated_images_path) 
             if not filename.endswith('.h5')
@@ -160,7 +197,7 @@ def yeaz_metrics(
             # get paths
             mask_name = image_name.replace('.png','_mask.h5')
             mask_path = os.path.join(generated_images_path, mask_name)
-            gt_mask_path = os.path.join(gt_path,'testA_masks', mask_name)
+            gt_mask_path = os.path.join(gt_path,f'test{original_domain}_masks', mask_name)
 
             # evaluate metrics
             j, sd, jc, succ = metrics.evaluate(
@@ -209,30 +246,36 @@ def save_metrics(
                header='epoch,J,SD,Jc', fmt='%d,%f,%f,%f')
 
 def main():
-    """Main function that runs: style transfer -> segmentation -> metrics"""
+    """Main function that runs: style transfer (cycle_GAN) -> segmentation (YeaZ) -> metrics (AP)"""
+
     # initialize style transfer options
     opt = initialzie_options()
 
     # create a range of epochs to test
-    epoch_range = range(
-        opt.min_epoch, opt.max_epoch+1, opt.epoch_step)
+    epoch_range = range(opt.min_epoch, opt.max_epoch+1, opt.epoch_step)
 
     # run style transfer
-    # style_transfer(style_opt, epoch_range)
+    if not opt.skip_style_transfer:
+        style_transfer(opt, epoch_range)
     
-    style_transfer_path = os.path.join(
-        opt.results_dir, opt.name)
+    style_transfer_path = os.path.join(opt.results_dir, opt.name)
 
     # run yeaz segmentation
-    yeaz_segmentation(opt, epoch_range, style_transfer_path)
+    if not opt.skip_segmentation:
+        yeaz_segmentation(opt, epoch_range, style_transfer_path)
 
     # calculate and save segmentation metrics
-    metrics_per_epoch = yeaz_metrics(
-        epoch_range, opt.dataroot, style_transfer_path)
-    save_metrics(metrics_per_epoch, opt.metrics_path)
+    if not opt.skip_metrics:
+        metrics_per_epoch = yeaz_metrics(
+            epoch_range, 
+            opt.dataroot, 
+            style_transfer_path, 
+            opt.original_domain, 
+            opt.target_domain
+        )
+        save_metrics(metrics_per_epoch, opt.metrics_path)
 
-    print(metrics_per_epoch)
-
+        print(metrics_per_epoch)
 
 if __name__ == '__main__':
     main()
