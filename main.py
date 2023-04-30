@@ -37,6 +37,7 @@ import sys
 import typing
 
 import numpy as np
+import torch
 
 sys.path.append("./cycle_gan")
 
@@ -60,6 +61,9 @@ def initialzie_options() -> argparse.Namespace:
     """
     # get test options
     opt = TestOptions().parse()
+
+    # set correct device
+    opt.device = torch.device('cuda:{}'.format(opt.gpu_ids[0])) if opt.gpu_ids else torch.device('cpu')
 
     ### Style transfer options ###
     # test code only supports num_threads = 1
@@ -166,9 +170,10 @@ def yeaz_segmentation(
                 imaging_type=None,
                 fovs=[0],
                 timepoints=[0, 0],
-                threshold=0.5,
+                threshold=opt.threshold,
                 min_seed_dist=opt.min_seed_dist,
-                weights_path=opt.path_to_yeaz_weights
+                weights_path=opt.path_to_yeaz_weights,
+                device = opt.device
             )
 
 

@@ -48,7 +48,7 @@ def threshold(im,th = None):
     return bi
 
 
-def prediction(im, mic_type, pretrained_weights=None, model_type='pytorch'):
+def prediction(im, mic_type, pretrained_weights=None, model_type='pytorch', device=None):
     """
     Calculate the prediction of the label corresponding to image im
     Param:
@@ -87,17 +87,21 @@ def prediction(im, mic_type, pretrained_weights=None, model_type='pytorch'):
         return tf_res
 
     elif model_type == 'pytorch': 
+        # set device cuda if cuda is available
+        if device is None:
+            device = torch.cuda.current_device() if torch.cuda.is_available() else 'cpu'
         # Load saved weights in pytorch model and run the pytorch model
-        model = UNet()
+        model = UNet().to(device)
         model.load_state_dict(torch.load(pretrained_weights))
         model.eval()
         with torch.no_grad():
             # Convert input tensor to PyTorch tensor
-            input_tensor = torch.from_numpy(padded[np.newaxis,np.newaxis,:,:]).float()
+            input_tensor = torch.from_numpy(
+                padded[np.newaxis,np.newaxis,:,:]).float().to(device)
             # Pass input through the model
             output_tensor = model.forward(input_tensor)
             # Convert output tensor to NumPy array
-            output_array = output_tensor.detach().numpy()
+            output_array = output_tensor.detach().cpu().numpy()
         pt_res = output_array[0, 0, :, :]
         
         return pt_res[:nrow, :ncol]

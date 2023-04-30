@@ -34,7 +34,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def YeazPredict(image_path, mask_path, imaging_type, fovs, timepoints, threshold, min_seed_dist, weights_path):
+def YeazPredict(image_path, mask_path, imaging_type, fovs, timepoints,
+                threshold, min_seed_dist, weights_path, device):
     LaunchInstanceSegmentation(
         nd.Reader("", mask_path, image_path), 
         imaging_type, 
@@ -43,16 +44,17 @@ def YeazPredict(image_path, mask_path, imaging_type, fovs, timepoints, threshold
         timepoints[1], 
         threshold, 
         min_seed_dist, 
-        weights_path
+        weights_path,
+        device
     )
 
-def LaunchPrediction(im, mic_type, pretrained_weights=None):
+def LaunchPrediction(im, mic_type, pretrained_weights=None, device=None):
     """It launches the neural neutwork on the current image and creates 
     an hdf file with the prediction for the time T and corresponding FOV. 
     """
     im = skimage.exposure.equalize_adapthist(im)
     im = im*1.0;	
-    pred = nn.prediction(im, mic_type, pretrained_weights)
+    pred = nn.prediction(im, mic_type, pretrained_weights, device=device)
     return pred
 
 
@@ -65,7 +67,9 @@ def ThresholdPred(thvalue, pred):
         thresholdedmask = nn.threshold(pred, thvalue)
     return thresholdedmask
 
-def LaunchInstanceSegmentation(reader, image_type, fov_indices=[0], time_value1=0, time_value2=0, thr_val=None, min_seed_dist=5, path_to_weights=None):
+
+def LaunchInstanceSegmentation(reader, image_type, fov_indices=[0], time_value1=0, time_value2=0,
+                               thr_val=None, min_seed_dist=5, path_to_weights=None, device=None):
     """
     """
     # cannot have both path_to_weights and image_type supplied
@@ -98,7 +102,8 @@ def LaunchInstanceSegmentation(reader, image_type, fov_indices=[0], time_value1=
             im = reader.LoadOneImage(t, fov_ind)
 
             try:
-                pred = LaunchPrediction(im, image_type, pretrained_weights=path_to_weights)
+                pred = LaunchPrediction(
+                    im, image_type, pretrained_weights=path_to_weights, device=device)
             except ValueError:
                 print('Error! ',
                       'The neural network weight files could not '
