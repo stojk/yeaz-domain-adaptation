@@ -26,20 +26,23 @@ Example:
         --skip_style_transfer (i.e. if style transfer has already been performed, skip)
         --skip_segmentation (i.e. if segmentation has already been performed, skip)
         --skip_metrics (i.e. if metrics have already been evaluated, skip)
+        --metrics_patch_borders METRICS_PATCH_BORDERS (i.e. 0,0,0,0) 
+        --plot_metrics
 
 """
 
 import argparse
 import os
 import sys
+import typing
 
 import numpy as np
 
 sys.path.append("./cycle_gan")
 
-import metrics.metrics as metrics
 from cycle_gan.data import create_dataset
 from cycle_gan.models import create_model
+from metrics.metrics import evaluate, plot_metrics, save_metrics
 from options.test_options import TestOptions
 from util import html
 from util.visualizer import save_images
@@ -62,8 +65,8 @@ def initialzie_options() -> argparse.Namespace:
     # test code only supports num_threads = 1
     opt.num_threads = 0
     # test code only supports batch_size = 1
-    opt.batch_size = 1 
-    # disable data shuffling; commcent this line if results on randomly chosen images are needed.   
+    opt.batch_size = 1
+    # disable data shuffling; commcent this line if results on randomly chosen images are needed.
     opt.serial_batches = True
     # no flip; comment this line if results on flipped images are needed.
     opt.no_flip = True
@@ -71,16 +74,21 @@ def initialzie_options() -> argparse.Namespace:
     opt.display_id = -1
     # specify target domain
     opt.target_domain = 'B' if opt.original_domain == 'A' else 'A'
-    
+
     ### Metrics options ###
-    # Set output metrics path if not specified
+    # set output metrics path if not specified
     if opt.metrics_path is None:
-        opt.metrics_path = os.path.join(opt.results_dir, opt.name, 'metrics.csv')
+        opt.metrics_path = os.path.join(
+            opt.results_dir, opt.name, 'metrics.csv')
+    # set corect type for metrics_patch_borders
+    if opt.metrics_patch_borders is not None:
+        opt.metrics_patch_borders = tuple(opt.metrics_patch_borders)
 
     return opt
 
+
 def style_transfer(
-    opt: argparse.Namespace, 
+    opt: argparse.Namespace,
     epoch_range: range
 ) -> None:
     """Perform style transfer on images in opt.dataroot
@@ -89,10 +97,10 @@ def style_transfer(
         opt: Options
         epoch_range: Range of epochs to perform style transfer on
     """
-    
+
     # create a dataset given opt.dataset_mode and other options
-    dataset = create_dataset(opt)  
-    
+    dataset = create_dataset(opt)
+
     # create a model given opt.model and other options
     model = create_model(opt)
 
@@ -100,9 +108,11 @@ def style_transfer(
 
         opt.epoch = str(epoch)
         # create a webpage for viewing the results
-        web_dir = os.path.join(opt.results_dir, opt.name, '{}_{}'.format(opt.phase, opt.epoch))  # define the website directory
+        web_dir = os.path.join(opt.results_dir, opt.name, '{}_{}'.format(
+            opt.phase, opt.epoch))  # define the website directory
         print('creating web directory', web_dir)
-        webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.epoch))
+        webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (
+            opt.name, opt.phase, opt.epoch))
 
         for i, data in enumerate(dataset):
             if i == 0:
@@ -121,9 +131,10 @@ def style_transfer(
             save_images(webpage, visuals, img_path, width=opt.display_winsize)
         webpage.save()  # save the HTML
 
+
 def yeaz_segmentation(
-    opt: argparse.Namespace, 
-    epoch_range: range, 
+    opt: argparse.Namespace,
+    epoch_range: range,
     style_transfer_path: str
 ) -> None:
     """Perform segmentation on style transferred images
@@ -136,36 +147,40 @@ def yeaz_segmentation(
     for epoch in epoch_range:
 
         generated_images_path = os.path.join(
-            style_transfer_path,f'test_{epoch}/images/fake_{opt.target_domain}')
+            style_transfer_path, f'test_{epoch}/images/fake_{opt.target_domain}')
         image_names = [
-            filename for filename in os.listdir(generated_images_path) 
+            filename for filename in os.listdir(generated_images_path)
             if not filename.endswith('.h5')
         ]
 
         for image_name in image_names:
             print(generated_images_path, image_name)
-            
+
             image_path = os.path.join(generated_images_path, image_name)
-            mask_name = image_name.replace('.png','_mask.h5')
+            ext = image_name.split('.')[-1]
+            mask_name = image_name.replace(f'.{ext}', '_mask.h5')
             mask_path = os.path.join(generated_images_path, mask_name)
             yeaz_predict(
                 image_path=image_path,
                 mask_path=mask_path,
                 imaging_type=None,
                 fovs=[0],
-                timepoints=[0,0],
+                timepoints=[0, 0],
                 threshold=0.5,
                 min_seed_dist=opt.min_seed_dist,
                 weights_path=opt.path_to_yeaz_weights
             )
 
+
 def yeaz_metrics(
-    epoch_range: range, 
-    gt_path: str, 
+    epoch_range: range,
+    gt_path: str,
     style_transfer_path: str,
     original_domain: str,
-    target_domain: str
-) -> None:
+    target_domain: str,
+    metrics_path: str = '',
+    borders: typing.Optional[tuple] = None
+) -> dict:
     """Evaluate metrics on style transferred and segmented images
 
     Arguments:
@@ -183,27 +198,26 @@ def yeaz_metrics(
         J, SD, Jc = [], [], []
 
         generated_images_path = os.path.join(
-            style_transfer_path,'test_{}'.format(epoch),f'images/fake_{target_domain}')
+            style_transfer_path, 'test_{}'.format(epoch), f'images/fake_{target_domain}')
         image_names = [
-            filename for filename in os.listdir(generated_images_path) 
+            filename for filename in os.listdir(generated_images_path)
             if not filename.endswith('.h5')
         ]
 
         for image_name in image_names:
-            
+
             # get paths
-            mask_name = image_name.replace('.png','_mask.h5')
+            mask_name = image_name.replace('.png', '_mask.h5')
             mask_path = os.path.join(generated_images_path, mask_name)
-            gt_mask_path = os.path.join(gt_path,f'test{original_domain}_masks', mask_name)
+            gt_mask_path = os.path.join(
+                gt_path, f'test{original_domain}_masks', mask_name)
 
             # evaluate metrics
-            j, sd, jc, succ = metrics.evaluate(
+            j, sd, jc = evaluate(
                 gt_mask_path,
-                mask_path
+                mask_path,
+                borders=borders
             )
-            if not succ:
-                J=SD=Jc=[-1]
-                break
 
             J.append(j)
             SD.append(sd)
@@ -213,34 +227,11 @@ def yeaz_metrics(
             np.mean(J), np.mean(SD), np.mean(Jc)
         )
 
+    if metrics_path:
+        save_metrics(avg_metrics_per_epoch, metrics_path)
+
     return avg_metrics_per_epoch
 
-def save_metrics(
-    metrics_dict: dict,
-    path: str
-) -> None:
-    """Save metrics to CSV file
-
-    Numpy is used to save the metrics to a CSV file, as we did not want to add dependencies on new packages.
-    The CSV file is structured as follows:
-        epoch,J,SD,Jc
-
-    Arguments:
-        metrics_dict: Dictionary of average metrics (J, SD, Jc) on segmented style transferred images for each epoch
-        path: Path to save CSV file
-    """
-
-    # Convert metrics_per_epoch to a structured NumPy array
-    metrics_arr = np.empty(
-        len(metrics_dict), 
-        dtype=[('epoch', int), ('J', float), ('SD', float), ('Jc', float)]
-    )
-    for i, (epoch, metrics) in enumerate(metrics_dict.items()):
-        metrics_arr[i] = (epoch, *metrics)
-
-    # Write to CSV
-    np.savetxt(path, metrics_arr, delimiter=',',
-               header='epoch,J,SD,Jc', fmt='%d,%f,%f,%f')
 
 def main():
     """Main function that runs: style transfer (cycle_GAN) -> segmentation (YeaZ) -> metrics (AP)"""
@@ -254,7 +245,7 @@ def main():
     # run style transfer
     if not opt.skip_style_transfer:
         style_transfer(opt, epoch_range)
-    
+
     style_transfer_path = os.path.join(opt.results_dir, opt.name)
 
     # run yeaz segmentation
@@ -263,16 +254,24 @@ def main():
 
     # calculate and save segmentation metrics
     if not opt.skip_metrics:
-        metrics_per_epoch = yeaz_metrics(
-            epoch_range, 
-            opt.dataroot, 
-            style_transfer_path, 
-            opt.original_domain, 
-            opt.target_domain
+        _ = yeaz_metrics(
+            epoch_range,
+            opt.dataroot,
+            style_transfer_path,
+            opt.original_domain,
+            opt.target_domain,
+            opt.metrics_path,
+            borders=opt.metrics_patch_borders
         )
-        save_metrics(metrics_per_epoch, opt.metrics_path)
 
-        print(metrics_per_epoch)
+    # plot metrics
+    if opt.plot_metrics:
+        loss_log_path = os.path.join(
+            opt.checkpoints_dir, opt.name, 'loss_log.txt')
+        plot_save_path = opt.metrics_path.replace('.csv', '.png')
+        plot_metrics(opt.metrics_path, loss_log_path, opt.original_domain,
+                     opt.max_epoch, save_path=plot_save_path)
+
 
 if __name__ == '__main__':
     main()
