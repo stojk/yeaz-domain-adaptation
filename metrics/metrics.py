@@ -69,7 +69,10 @@ def mean_iou(
 
 
 # Precision helper function
-def precision_at(threshold, iou):
+def precision_at(
+    threshold: float,
+    iou: np.ndarray
+) -> Tuple[float, float, float]:
     """Compute precision at a given threshold on IoU.
 
     Arguments:
