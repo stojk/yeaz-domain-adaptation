@@ -56,6 +56,6 @@ Script arguments follow the established nomenclature from two combined projects 
         --skip_style_transfer (i.e. if style transfer has already been performed, skip)
         --skip_segmentation (i.e. if segmentation has already been performed, skip)
         --skip_metrics (i.e. if metrics have already been evaluated, skip)
-        --metrics_patch_borders METRICS_PATCH_BORDERS (i.e. 0,0,0,0) 
+        --metrics_patch_borders METRICS_PATCH_BORDERS (i.e. 480 736 620 876)
         --plot_metrics
 ```
