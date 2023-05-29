@@ -6,7 +6,7 @@ then performs segmentation on the style transferred images,
 and finally evaluates metrics on the segmented images.
 
 Example:
-    $ python main.py \
+    $ python evaluate.py \
         --dataroot GT_DATA_FOLDER \
         --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER (i.e. D:/GAN_grid_search) \
         --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING (i.e. cyclegan_lambda_A_100_lambda_B_10_trial_2) \
@@ -26,7 +26,7 @@ Example:
         --skip_style_transfer (i.e. if style transfer has already been performed, skip)
         --skip_segmentation (i.e. if segmentation has already been performed, skip)
         --skip_metrics (i.e. if metrics have already been evaluated, skip)
-        --metrics_patch_borders METRICS_PATCH_BORDERS (i.e. 480 736 620 876)
+        --metrics_patch_borders Y0 Y1 X0 X1 (i.e. 480 736 620 876)
         --plot_metrics
 
 """
