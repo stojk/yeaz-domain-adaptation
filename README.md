@@ -17,28 +17,22 @@ Paper: *Pan-microscope image segmentation based on a single training set*
 ```
     GT_DATA_FOLDER
     ├── trainA
-    │   ├── 1.png
-    │   ├── 2.png
+    │   ├── A1.png
     │   └── ...
     ├── trainB
-    │   ├── 1.png
-    │   ├── 2.png
+    │   ├── B1.png
     │   └── ...
     ├── testA
-    │   ├── 1.png
-    │   ├── 2.png
+    │   ├── A2.png
     │   └── ...
     ├── testB
-    │   ├── 1.png
-    │   ├── 2.png
+    │   ├── B2.png
     │   └── ...
     ├── testA_masks
-    │   ├── 1_mask.h5
-    │   ├── 2_mask.h5
+    │   ├── A2_mask.h5
     │   └── ...
     └── testB_masks
-        ├── 1_mask.h5
-        ├── 2_mask.h5
+        ├── B2_mask.h5
         └── ...
 ```
 Depending on usage, some of the folders can be empty:
