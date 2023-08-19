@@ -3,10 +3,6 @@ import itertools
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
-try:
-    from apex import amp
-except ImportError as error:
-    print(error)
 
 
 class CycleGANModel(BaseModel):
