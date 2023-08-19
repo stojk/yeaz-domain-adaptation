@@ -34,7 +34,6 @@ The code was written in Python 3.9 and tested on Windows 11 and RedHat Linux ser
 - **Memory (RAM)**: [TODO]
 - **Storage**: [TODO]
 - **Graphics**: [TODO]
-- **Internet Connection**: [TODO]
 
 ### Installation steps
 
