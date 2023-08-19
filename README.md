@@ -32,41 +32,43 @@ Installation time is less than 10 minutes.
 
 # Usage
 
-The code can be run from the command line and is split into two parts: i) Training of the microscopy style-transfer using CycleGAN ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. More specifically:
+The code can be run from the command line and is split into two parts: (i) Training of the microscopy style-transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. More specifically:
 
 1. *train_cyclegan.py* script performs:
-* style transfer training between the images in the trainA and trainB folders
+    * style transfer training between the images in the trainA and trainB folders
 
 2. *evaluate.py* script performs:
-*  style transfer on source dataset images in one of the specified folders (testA or testB) using the pretrained CycleGAN
-*  segmentation on the style-transferred images using the pretrained YeaZ weights, 
-*  evaluation of segmentation quality based on the segmented images and GT masks
+    *  style transfer on source dataset images in one of the specified folders (testA or testB) using the pretrained CycleGAN
+    *  segmentation on the style-transferred images using the pretrained YeaZ weights, 
+    *  evaluation of segmentation quality based on the segmented images and GT masks
 
-Both parts of the code rely on the following input data structure:
-```
-    GT_DATA_FOLDER
-    ├── trainA
-    │   ├── A1.png
-    │   └── ...
-    ├── trainB
-    │   ├── B1.png
-    │   └── ...
-    ├── testA
-    │   ├── A2.png
-    │   └── ...
-    ├── testB
-    │   ├── B2.png
-    │   └── ...
-    ├── testA_masks
-    │   ├── A2_mask.h5
-    │   └── ...
-    └── testB_masks
-        ├── B2_mask.h5
-        └── ...
-```
-Depending on the usage, some of the folders can be empty:
-* testA(_masks) and testB(_masks) can be empty during CycleGAN training
-* trainA and trainB can be empty during the evaluation step
+    Both parts of the code rely on the following input data structure:
+    ```
+        input_data
+        ├── trainA
+        │   ├── A1.png
+        │   └── ...
+        ├── trainB
+        │   ├── B1.png
+        │   └── ...
+        ├── testA
+        │   ├── A2.png
+        │   └── ...
+        ├── testB
+        │   ├── B2.png
+        │   └── ...
+        ├── testA_masks
+        │   ├── A2_mask.h5
+        │   └── ...
+        └── testB_masks
+            ├── B2_mask.h5
+            └── ...
+    ```
+    Depending on the usage, some of the folders can be empty:
+    * testA(_masks) and testB(_masks) can be empty during CycleGAN training
+    * trainA and trainB can be empty during the evaluation step
+
+3. Additonally, the helper function, *preprocessing.py*, prepares the raw input data, of variable sizes and contents, for style transfer training.
 
 
 ## Train CycleGAN
