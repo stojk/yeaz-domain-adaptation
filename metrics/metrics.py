@@ -192,7 +192,8 @@ def evaluate(
 
     h5_gt = h5py.File(gt_path, 'r')
     masks_gt = np.array(h5_gt['FOV0']['T0'], dtype=int)
-    masks_gt = binarized_to_labels(masks_gt)
+    # TODO parametrize binarized_to_labels
+    # masks_gt = binarized_to_labels(masks_gt)
 
     h5_pred = h5py.File(pred_path, 'r')
     masks_pred = np.array(h5_pred['FOV0']['T0'], dtype=int)
