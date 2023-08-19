@@ -228,7 +228,7 @@ def save_metrics(
 
     # Write to CSV
     np.savetxt(path, metrics_arr, delimiter=',',
-               header='epoch,J,SD,Jc', fmt='%d,%f,%f,%f')
+               header='epoch,AP,SD,Jc', fmt='%d,%f,%f,%f')
 
 
 def load_metrics(path: str) -> np.ndarray:
@@ -304,9 +304,6 @@ def plot_metrics(
 
     _, axs = plt.subplots(2, 1, figsize=(20, 10))
     plt.ylim([0, 1])
-
-    axs[0].set_ylabell = 'Cycle GAN loss'
-    axs[0].set_xlabel = 'epoch'
     axs[0].set_ylim([0, 1.05])
     axs[1].set_ylim([0, 1.05])
     if max_epoch is not None:
@@ -317,8 +314,8 @@ def plot_metrics(
                     '#F8333C', '#FF813D', '#555B6E', '#00A6FB']
 
     # Plot Yeaz metrics
-    axs[1].plot(metrics[:, 0], metrics[:, 1], linewidth=10,
-                label='Patch metrics', color=graph_colors[3])
+    axs[1].plot(metrics[:, 0], metrics[:, 1], linewidth=5,
+                label='Patch AP metrics', color=graph_colors[3])
 
     # Plot CycleGAN losses
     if (original_domain == 'A'):
@@ -327,7 +324,21 @@ def plot_metrics(
         keys = ['D_B', 'G_B', 'cycle_B']
     for i, key in enumerate(keys):
         axs[0].plot(losses[key].keys(), np.array(list(losses[key].values())) /
-                    max(losses[key].values()), label=key, linewidth=7, color=graph_colors[i])
+                    max(losses[key].values()), label=key, linewidth=3, color=graph_colors[i])
+
+    # Add title and legend
+    axs[0].set_title('Cycle GAN losses', fontsize=20)
+    axs[1].set_title('Yeaz metrics', fontsize=20)
+    axs[0].legend(fontsize=12)
+    axs[1].legend(fontsize=12)
+
+    # Make the plots share the same x-axis
+    axs[0].get_shared_x_axes().join(axs[0], axs[1])
+    axs[0].set_xticklabels([])
+    axs[1].set_xlabel('epoch', fontsize=20)
+
+    # Add Y labels
+    axs[1].set_ylabel('AP', fontsize=20) 
 
     # Adjust the spacing between the subplots
     # plt.subplots_adjust(wspace=0.1, hspace=0.1)
