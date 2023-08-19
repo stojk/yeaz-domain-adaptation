@@ -26,9 +26,9 @@ class TestOptions(BaseOptions):
         # Add YeaZ options
         parser.add_argument('--path_to_yeaz_weights', default=None,
                             type=str, help="Specify YeaZ weights path.")
-        parser.add_argument('--threshold', default=None,
+        parser.add_argument('--threshold', default=0.5,
                             type=float, help="Specify threshold value.")
-        parser.add_argument('--min_seed_dist', default=3, type=int,
+        parser.add_argument('--min_seed_dist', default=5, type=int,
                             help="Specify minimum distance between seeds.")
         parser.add_argument('--min_epoch', default=1,
                             type=int, help="Specify min epoch.")
