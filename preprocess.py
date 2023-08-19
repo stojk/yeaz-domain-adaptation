@@ -35,7 +35,7 @@ def crop_into_patches(
     # Delete the dst_path if it exists
     if op.exists(dst_path):
         shutil.rmtree(dst_path)
-    os.mkdir(dst_path)
+    os.makedirs(dst_path)
 
     half_size = patch_size//2
     crop_list = []
