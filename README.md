@@ -108,7 +108,7 @@ Please replace placeholders with actual values and descriptions relevant to your
 |------------------|------------------------------------------------------------|---------------|
 | `--src_path`     | Path to the folder containing the images.                  | -             |
 | `--dst_path`     | Path to the folder where patches will be saved.            | -             |
-| `--var_thr`      | Empirical variance threshold for empty images removal.     | `500000`      |
+| `--var_thr`      | Empirical variance threshold for empty patches detection.  | `500000`      |
 | `--scale_factor` | Factor to scale the images intensity by.                   | `1.0`         |
 | `--patch_size`   | Size of the output patches.                                | `256`         |
 
