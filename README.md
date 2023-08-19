@@ -50,7 +50,9 @@ Installation time is less than 10 minutes.
 
 # Usage
 
-The code can be run from the command line and is split into two parts: (i) Training of the microscopy style-transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. More specifically:
+The code can be run from the command line and is split into two parts: (i) Training of the microscopy style-transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. 
+
+More specifically:
 
 1. *train_cyclegan.py* script performs:
     * style transfer training between the images in the trainA and trainB folders
@@ -228,5 +230,6 @@ Demo time: ~2-3h
 4. Evaluate domain adaptation
     - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
-    - You can find the generated segmentation masks from the style-transfered images <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder. You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
+    - You can find the generated segmentation masks from the style-transfered images <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
+    You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
