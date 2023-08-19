@@ -155,7 +155,7 @@ If no lambda values are specified, default values (10, 10) will be used.
 | `--lr LR`               | Initial learning rate for Adam optimizer.      | `0.0002`      |
 
 ## Evaluate the mapping using pretrained YeaZ
-<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training (_checkpoints_dir_), the DNN weights used for training of the source dataset (_path_to_yeaz_weights_), among other things. 
+<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training (<i>checkpoints_dir</i>), the DNN weights used for training of the source dataset (<i>path_to_yeaz_weights</i>), among other things. 
 
 The rest of the arguments refer to either other trained CycleGAN specifications (_dataroot_, _name_, _model_) or to YeaZ segmentation (_threshold_, _min_seed_dist_, _min_epoch_, _max_epoch_, _epoch_step_). The dataroot folder contains the mask of the small annotated patch of the test image for only one of the domains (corresponding to the target set). If specified, a subpart (patch) of the big mask can be used for training evaluation instead of the whole mask. In that case _metrics_patch_borders_ should be supplied as an additional parameter. The resulting segmentation masks will be saved in _results_dir_ and the metrics of segmentation in _metrics_path_. </p>
 
