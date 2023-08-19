@@ -72,12 +72,28 @@ Depending on the usage, some of the folders can be empty:
 ## Train CycleGAN
 Script arguments follow the established options nomenclature from the original cycleGAN repository (https://github.com/taesungp/contrastive-unpaired-translation). For more details see the comments in the code below.
 
+1. Preprocessing
 
-1. Start a visdom server:
+To preprocess the raw images for style transfer training, use the following command on both source and target datasets:
+
+```bash
+$ python preprocess.py --src_path INPUT_FOLDER --dst_path OUTPUT_FOLDER
+```
+Please replace placeholders with actual values and descriptions relevant to your script.
+
+#### Options
+
+| Argument         | Description                                                | Default Value |
+|------------------|------------------------------------------------------------|---------------|
+| `--src_path`     | Path to the folder containing the images.                  | -             |
+| `--dst_path`     | Path to the folder where patches will be saved.            | -             |
+| `--var_thr`      | Empirical variance threshold for background path removal.  | `500000`      |
+| `--scale_factor` | Factor to rescale the images by.                           | `1.0`         |
+| `--patch_size`   | Size of the patches.                                       | `256`         |
+
+2. Start a visdom server:
 ```$ python -m visdom.server```
 <p> Visdom is a visualization tool that communicates with the CycleGAN code during training and saves one example of mapping per epoch. This is useful for quickly checking whether the mapping qualitatively  makes sense. Saved data can be later accessed using an HTML interface, in Checkpoint/Experiment_Name/web/index.html</p>
-
-2. Preprocessing
 
 3. Launch training:
 
