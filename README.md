@@ -30,7 +30,7 @@ Installation time is less than 10 minutes.
  5. Navigate to the folder where you cloned the YeaZ-micromap repository and install required packages ```pip install -r requirements.txt```
 
 
-<h1>Usage</h1>
+# Usage
 
 The code can be run from the command line and is split into two parts: i) Training of the microscopy style-transfer using CycleGAN ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. More specifically:
 
@@ -69,7 +69,7 @@ Depending on the usage, some of the folders can be empty:
 * trainA and trainB can be empty during the evaluation step
 
 
-<h3>Train CycleGAN</h3>
+## Train CycleGAN
 Script arguments follow the established options nomenclature from the original cycleGAN repository (https://github.com/taesungp/contrastive-unpaired-translation). For more details see the comments in the code below.
 
 
@@ -80,52 +80,88 @@ Script arguments follow the established options nomenclature from the original c
 2. Preprocessing
 
 3. Launch training:
-```
-    $ python train_cyclegan.py \
-        --model cycle_gan \#The generative model we use for transfer of the look of microscopy images
-        --dataroot GT_DATA_FOLDER \#Directory that contains images used for training
-        --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER (i.e. D:/GAN_grid_search) \#Directory where the trained models are saved. By default,  models will be saved after every epoch
-        --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \#Name of the experiment (to be used during the prediction phase) e.g. i.e. cyclegan_lambda_A_100_lambda_B_10_trial_2
-        --preprocess crop \#Preprocess images by cropping them to small patches with the default size of 256 px X 256 px
-        --grid_lambdas_A L1 L2 L3 ..  \#cycle_consistency_loss weights used for A->B->A mapping (e.g. 1 10), default = 10
-        --grid_lambdas_B L1 L2 L3 .. \#cycle_consistency_loss weights used for B->A->B mapping (e.g. 1 10), default = 10
 
-    other options:
-        --gpu_ids GPU_ID \# -1 for CPU; 0 for GPU0; 0,1 for GPU0 and GPU1, default = 0
-        --batch_size BATCH_SIZE \#default = 1
-        --n_epochs N_EPOCHS \#default = 200
-        --n_epochs_decay N_EPOCHS_DECAY \#Number of epochs before learning rate linearly decays to 0, default = 200
-        --lr LR \#Initial learning rate for adam, default = 0.0002
+To initiate the training process, execute the following command:
 
+```bash
+$ python train_cyclegan.py \
+    --dataroot GT_DATA_FOLDER \
+    --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \
+    --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \
+    --grid_lambdas_A L1 L2 \
+    --grid_lambdas_B L1
 ```
+Please replace placeholders with actual values and descriptions relevant to your script.
+
+#### Main Options
+
+| Argument                        | Description                                                                 | Default Value |
+|---------------------------------|-----------------------------------------------------------------------------|---------------|
+| `--dataroot GT_DATA_FOLDER`     | Directory containing training images.                                       | -             |
+| `--checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER` | Directory to save trained models. Models are saved after each epoch by default. | -             |
+| `--name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING`            | Experiment name for future reference.                                        | -             |
+| `--grid_lambdas_A L1 L2 ...`    | Cycle consistency loss weights for A->B->A mapping.                          | `10`          |
+| `--grid_lambdas_B L1 L2 ...`    | Cycle consistency loss weights for B->A->B mapping.                          | `10`          |
+
 If multiple lambda values are specified, a grid search will be performed.</br>
 If no lambda values are specified, default values (10, 10) will be used.
 
-<h3>Evaluate the mapping using pretrained YeaZ</h3>
+#### Other Options
+
+| Argument                | Description                                    | Default Value |
+|-------------------------|------------------------------------------------|---------------|
+| `--model cycle_gan`     | Generative model for transferring images.      | -             |
+| `--gpu_ids GPU_ID`      | `-1` for CPU, `0` for GPU0, `0 1` for GPU0 and GPU1. | `0`           |
+| `--batch_size BATCH_SIZE`| Batch size for training.                      | `1`           |
+| `--n_epochs N_EPOCHS`   | Number of training epochs.                     | `200`         |
+| `--n_epochs_decay N_EPOCHS_DECAY` | Epochs before linearly decaying the learning rate. | `200`         |
+| `--lr LR`               | Initial learning rate for Adam optimizer.      | `0.0002`      |
+
+## Evaluate the mapping using pretrained YeaZ
 <p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training ("checkpoints_dir"), the DNN weights used for training of the source dataset ("path_to_yeaz_weights"), among other things. The rest of the arguments refer to either other trained CycleGAN specifications ("dataroot", "name", "model", "preprocess") or to YeaZ segmentation ("threshold", "min_seed_dist", "min_epoch", "max_epoch", "epoch_step"). The dataroot folder contains the mask of the small annotated patch of the test image for only one of the domains (corresponding to the target set). If specified, a subpart (patch) of the big mask can be used for training evaluation instead of the whole mask. In that case "metrics_patch_borders" should be supplied as an additional parameter. The resulting segmentation masks will be saved in "results_dir" and the metrics of segmentation in "metrics_path". </p>
 
-```
+To evaluate the style-transferred images and metrics, use the following command:
+```bash
 $ python evaluate.py \
-    --dataroot GT_DATA_FOLDER \#Directory that contains test images
-    --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \#Checkpoints directory as specified during the CycleGAN training, e.g. D:/GAN_grid_search
-    --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING  \#Experiment name as specified during the CycleGAN training, e.g. cyclegan_lambda_A_100_lambda_B_10_trial_1
-    --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS \#Pretrained YeaZ weights, e.g. ./yeaz/unet/weights_budding_BF.pt
-    --threshold 0.5 \#Threshold used during YeaZ prediction, default = 0.5
-    --min_seed_dist 3 \#Minimal seed distance between two cells used during YeaZ prediction, default = 5
-    --min_epoch 1 \#First CycleGAN epoch to take into consideration for evaluation
-    --max_epoch 201 \#Last CycleGAN epoch to take into consideration for evaluation
-    --epoch_step 5 \#Evaluate every n-th epoch of the CycleGAN training
-    --results_dir RESULTS_FOLDER \#Output folder where style-transferred and segmented images will be saved, e.g. D:/GAN_grid_search/results
-    --metrics_path METRICS_PATH \#Output folder where metrics (AP) will be saved, e.g. D:/GAN_grid_search/results/metrics.csv
-
-other options:
-    --original_domain A or B \#Source dataset to use test sets from, default = A
-    --skip_style_transfer \#i.e. if style transfer has already been performed, skip
-    --skip_segmentation \#i.e. if segmentation has already been performed, skip
-    --skip_metrics \#i.e. if metrics have already been evaluated, skip
-    --metrics_patch_borders Y0 Y1 X0 X1 \#e.g. 480 736 620 876
-    --plot_metrics
+    --dataroot GT_DATA_FOLDER \
+    --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \
+    --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \
+    --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS \
+    --min_epoch 1 \
+    --max_epoch 201 \
+    --epoch_step 5 \
+    --results_dir RESULTS_FOLDER \
+    --metrics_path METRICS_PATH
 ```
+Please replace placeholders with actual values and descriptions relevant to your script.
+
+#### Main Options
+
+| Argument                       | Description                                           | Default Value |
+|--------------------------------|-------------------------------------------------------|---------------|
+| `--dataroot`                    | Directory containing test images.                    | -             |
+| `--checkpoints_dir`             | Directory with CycleGAN training checkpoints.        | -             |
+| `--name`                        | Experiment name from CycleGAN training.               | -             |
+| `--path_to_yeaz_weights`        | Path to pretrained YeaZ weights.                     | -             |
+| `--min_epoch`                   | First CycleGAN epoch for evaluation.                 | `1`           |
+| `--max_epoch`                   | Last CycleGAN epoch for evaluation.                  | `201`         |
+| `--epoch_step`                  | Evaluate every n-th epoch.                          | `5`           |
+| `--results_dir`                 | Output folder for style-transferred images.          | -             |
+| `--metrics_path`                | Path to save evaluation metrics (AP).                | -             |
+
+#### Other Options
+
+| Argument                       | Description                                           | Default Value |
+|--------------------------------|-------------------------------------------------------|---------------|
+| `--original_domain A or B`     | Target dataset to use test sets from.                | `A`           |
+| `--skip_style_transfer`         | Skip style transfer if already performed.            | -             |
+| `--skip_segmentation`           | Skip segmentation if already performed.              | -             |
+| `--skip_metrics`                | Skip metrics if already evaluated.                   | -             |
+| `--threshold`                   | Threshold used during YeaZ prediction.               | `0.5`         |
+| `--min_seed_dist`               | Minimal seed distance between cells for prediction.  | `5`           |
+| `--metrics_patch_borders Y0 Y1 X0 X1` | Metrics patch borders, e.g., `480 736 620 876`.  | -             |
+| `--plot_metrics`                | Plot evaluation metrics.                            | -             |
+
 
 <h1>Demo</h1>
 
@@ -139,17 +175,18 @@ Target domain: BrightField
     - Upack the downloaded file and place its contents into _./data/_ folder
 
 2. Data preprocessing
-    - Preprocess PhaseContrast images: ```python preprocess.py --src_path ./data/original/PhaseContrast/ --dst_path ./data/preprocessed/trainA/ --var_thr 500000```
-    - Preprocess BrightField images: ```python preprocess.py --src_path ./data/original/BrightField/ --dst_path ./data/preprocessed/trainB/ --var_thr 50000```
+    - Preprocess PhaseContrast images: ```python preprocess.py --src_path ./data/input_data/PhaseContrast_demo/ --dst_path ./data/input_data/trainA/ --scale_factor 10```
+    - Preprocess BrightField images: ```python preprocess.py --src_path ./data/input_data/BrightField_demo/ --dst_path ./data/input_data/trainB/```
+    - Preprocessed PhaseContrast and BrightField images can be found in the folders _trainA_ and _trainB_ respectively (within the <i>./data/input_data/</i> folder)
 
 3. Style transfer training
     - Start visdom: ```python -m visdom.server```
-    - Run CycleGAN: ```python train_cyclegan.py --dataroot ./data/preprocessed/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --batch_size 1 --display_freq 1```
+    - Run CycleGAN: ```python train_cyclegan.py --dataroot ./data/input_data/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --n_epochs_decay 0 --batch_size 1 --display_freq 1```
     - Track the training progress via visdom at http://localhost:8097/
     - All weights will be stored at _./data/checkpoints_ 
 
 4. Evaluate domain adaptation
-    - Run evaluate script: ```python evaluate.py --dataroot ./data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/original/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 201 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 1100 1356 600 856 --plot_metrics --original_domain B```
+    - Run evaluate script: ```python evaluate.py --dataroot ./data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/original/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 1100 1356 600 856 --plot_metrics --original_domain B```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPCOH placeholder
     - You can find the generated segmentation masks from the style-transfered images <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPCOH placeholder. You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
