@@ -15,10 +15,28 @@ Paper: *Pan-microscope image segmentation based on a single training set*
 
 
 
-<h1>Installation</h1>
-<h4>System requirements</h4>
+# Installation
+### System requirements
 The code was written in Python 3.9 and tested on Windows 11 and RedHat Linux server 7.7.
-<h4>Installation steps</h4>
+
+### Hardware requirements   
+
+#### Minimum Requirements (for demo and prototyping)
+
+- **Processor**: AMD Ryzen 5 5600H or equivalent
+- **Memory (RAM)**: 16GB
+- **Storage**: 100 GB available space
+- **Graphics**: NVIDIA GeForce RTX 3060, 6GB VRAM
+
+#### Recommended Requirements
+
+- **Processor**: [TODO]
+- **Memory (RAM)**: [TODO]
+- **Storage**: [TODO]
+- **Graphics**: [TODO]
+- **Internet Connection**: [TODO]
+
+### Installation steps
 
 Installation time is less than 10 minutes.
 </br>
@@ -190,6 +208,8 @@ Please replace placeholders with actual values and descriptions relevant to your
 Source domain: PhaseContrast</br>
 Target domain: BrightField
 
+Demo time: ~2-3h
+
 1. Data download
     - Download the data from TODO
     - Upack the downloaded file and place its contents into _./data/_ folder
@@ -206,7 +226,7 @@ Target domain: BrightField
     - All weights will be stored at _./data/checkpoints_ 
 
 4. Evaluate domain adaptation
-    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/original/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 1100 1356 600 856 --plot_metrics --original_domain B```
+    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
     - You can find the generated segmentation masks from the style-transfered images <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder. You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
