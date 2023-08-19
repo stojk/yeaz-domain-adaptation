@@ -92,11 +92,11 @@ More specifically:
 
 
 ## Train CycleGAN
-Script arguments follow the established options nomenclature from the original cycleGAN repository (https://github.com/taesungp/contrastive-unpaired-translation). For more details see the comments in the code below.
+Training script arguments follow the established options nomenclature from the original cycleGAN repository (https://github.com/taesungp/contrastive-unpaired-translation). For more details see the comments in the code below.
 
 1. Preprocessing
 
-To preprocess the raw images for style transfer training, use the following command on both source and target datasets:
+To preprocess the raw images into patches for style transfer training, use the following command on both source and target datasets:
 
 ```bash
 $ python preprocess.py --src_path INPUT_FOLDER --dst_path OUTPUT_FOLDER
@@ -110,8 +110,8 @@ Please replace placeholders with actual values and descriptions relevant to your
 | `--src_path`     | Path to the folder containing the images.                  | -             |
 | `--dst_path`     | Path to the folder where patches will be saved.            | -             |
 | `--var_thr`      | Empirical variance threshold for background path removal.  | `500000`      |
-| `--scale_factor` | Factor to rescale the images by.                           | `1.0`         |
-| `--patch_size`   | Size of the patches.                                       | `256`         |
+| `--scale_factor` | Factor to scale the images intensity by.                   | `1.0`         |
+| `--patch_size`   | Size of the output patches.                                | `256`         |
 
 2. Start a visdom server:
 ```$ python -m visdom.server```
@@ -156,7 +156,7 @@ If no lambda values are specified, default values (10, 10) will be used.
 | `--lr LR`               | Initial learning rate for Adam optimizer.      | `0.0002`      |
 
 ## Evaluate the mapping using pretrained YeaZ
-<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training ("checkpoints_dir"), the DNN weights used for training of the source dataset ("path_to_yeaz_weights"), among other things. 
+<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training (_checkpoints_dir_), the DNN weights used for training of the source dataset (_path_to_yeaz_weights_), among other things. 
 
 The rest of the arguments refer to either other trained CycleGAN specifications (_dataroot_, _name_, _model_) or to YeaZ segmentation (_threshold_, _min_seed_dist_, _min_epoch_, _max_epoch_, _epoch_step_). The dataroot folder contains the mask of the small annotated patch of the test image for only one of the domains (corresponding to the target set). If specified, a subpart (patch) of the big mask can be used for training evaluation instead of the whole mask. In that case _metrics_patch_borders_ should be supplied as an additional parameter. The resulting segmentation masks will be saved in _results_dir_ and the metrics of segmentation in _metrics_path_. </p>
 
@@ -177,15 +177,15 @@ Please replace placeholders with actual values and descriptions relevant to your
 
 #### Main Options
 
-| Argument                       | Description                                           | Default Value |
-|--------------------------------|-------------------------------------------------------|---------------|
+| Argument                        | Description                                          | Default Value |
+|---------------------------------|------------------------------------------------------|---------------|
 | `--dataroot`                    | Directory containing test images.                    | -             |
 | `--checkpoints_dir`             | Directory with CycleGAN training checkpoints.        | -             |
-| `--name`                        | Experiment name from CycleGAN training.               | -             |
-| `--path_to_yeaz_weights`        | Path to pretrained YeaZ weights.                     | -             |
+| `--name`                        | Experiment name from CycleGAN training.              | -             |
+| `--path_to_yeaz_weights`        | Path to the pretrained YeaZ weights.                 | -             |
 | `--min_epoch`                   | First CycleGAN epoch for evaluation.                 | `1`           |
 | `--max_epoch`                   | Last CycleGAN epoch for evaluation.                  | `201`         |
-| `--epoch_step`                  | Evaluate every n-th epoch.                          | `5`           |
+| `--epoch_step`                  | Evaluate every n-th epoch.                           | `5`           |
 | `--results_dir`                 | Output folder for style-transferred images.          | -             |
 | `--metrics_path`                | Path to save evaluation metrics (AP).                | -             |
 
@@ -198,14 +198,14 @@ Please replace placeholders with actual values and descriptions relevant to your
 | `--skip_segmentation`           | Skip segmentation if already performed.              | -             |
 | `--skip_metrics`                | Skip metrics if already evaluated.                   | -             |
 | `--threshold`                   | Threshold used during YeaZ prediction.               | `0.5`         |
-| `--min_seed_dist`               | Minimal seed distance between cells for prediction.  | `5`           |
+| `--min_seed_dist`               | Minimal seed distance between cells for YeaZ prediction.  | `5`           |
 | `--metrics_patch_borders Y0 Y1 X0 X1` | Metrics patch borders, e.g., `480 736 620 876`.  | -             |
 | `--plot_metrics`                | Plot evaluation metrics.                            | -             |
 
 
 <h1>Demo</h1>
 
-<h4>The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from target to source domain, their segmentation in the source domain, and evaluation criteria (average precission) for selecting the best style transfer epoch for the following segmentation task</h4>
+#### The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from target to source domain, their segmentation in the source domain, and evaluation criteria (average precission) for selecting the best style transfer epoch for the following segmentation task.
 
 Source domain: PhaseContrast</br>
 Target domain: BrightField
@@ -230,6 +230,6 @@ Demo time: ~2-3h
 4. Evaluate domain adaptation
     - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
-    - You can find the generated segmentation masks from the style-transfered images <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
+    - You can find the generated segmentation masks from the style-transfered images at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
     You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
