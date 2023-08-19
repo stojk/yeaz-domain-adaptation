@@ -93,7 +93,7 @@ More specifically:
 ## Train CycleGAN
 Training script arguments follow the established options nomenclature from the original cycleGAN repository (https://github.com/taesungp/contrastive-unpaired-translation). For more details see the comments in the code below.
 
-1. Preprocessing
+### 1. Preprocessing
 
 To preprocess the raw images into patches for style transfer training, use the following command on both source and target datasets:
 
@@ -112,11 +112,13 @@ Please replace placeholders with actual values and descriptions relevant to your
 | `--scale_factor` | Factor to scale the images intensity by.                   | `1.0`         |
 | `--patch_size`   | Size of the output patches.                                | `256`         |
 
-2. Start a visdom server:
-```$ python -m visdom.server```
+### 2. Start a visdom server
+```bash
+$ python -m visdom.server
+```
 <p> Visdom is a visualization tool that communicates with the CycleGAN code during training and saves one example of mapping per epoch. This is useful for quickly checking whether the mapping qualitatively  makes sense. Saved data can be later accessed using an HTML interface, in Checkpoint/Experiment_Name/web/index.html</p>
 
-3. Launch training:
+### 3. Launch training
 
 To initiate the training process, execute the following command:
 
@@ -222,7 +224,7 @@ Demo time: ~2-3h
 
 3. Style transfer training
     - Start visdom: ```$ python -m visdom.server```
-    - Run CycleGAN: ```$ python train_cyclegan.py --dataroot ./data/input_data/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --n_epochs_decay 0 --batch_size 1 --display_freq 1```
+    - Run CycleGAN training: ```$ python train_cyclegan.py --dataroot ./data/input_data/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --n_epochs_decay 0 --batch_size 1 --display_freq 1```
     - Track the training progress via visdom at http://localhost:8097/
     - All weights will be stored at _./data/checkpoints_ 
 
