@@ -218,33 +218,18 @@ Demo time: ~2-3h
     - Upack the downloaded file and place its contents into _./data/_ folder
 
 2. Data preprocessing
-    - Preprocess PhaseContrast images:
-        ```bash
-        $ python preprocess.py --src_path ./data/input_data/PhaseContrast_demo/ --dst_path ./data/input_data/trainA/ --scale_factor 10
-        ```
-    - Preprocess BrightField images:
-        ```bash
-        $ python preprocess.py --src_path ./data/input_data/BrightField_demo/ --dst_path ./data/input_data/trainB/
-        ```
+    - Preprocess PhaseContrast images: ```$ python preprocess.py --src_path ./data/input_data/PhaseContrast_demo/ --dst_path ./data/input_data/trainA/ --scale_factor 10```
+    - Preprocess BrightField images: ```$ python preprocess.py --src_path ./data/input_data/BrightField_demo/ --dst_path ./data/input_data/trainB/```
     - Preprocessed PhaseContrast and BrightField images can be found in the folders _trainA_ and _trainB_ respectively (within the <i>./data/input_data/</i> folder)
 
 3. Style transfer training
-    - Start visdom:
-        ```bash
-        $ python -m visdom.server
-        ```
-    - Run CycleGAN training:
-        ```bash
-        $ python train_cyclegan.py --dataroot ./data/input_data/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --n_epochs_decay 0 --batch_size 1 --display_freq 1
-        ```
+    - Start visdom: ```$ python -m visdom.server```
+    - Run CycleGAN training: ```$ python train_cyclegan.py --dataroot ./data/input_data/ --name demo --checkpoints_dir ./data/checkpoints/ --gpu_ids 0 --n_epochs 100 --n_epochs_decay 0 --batch_size 1 --display_freq 1```
     - Track the training progress via visdom at http://localhost:8097/
     - All weights will be stored at _./data/checkpoints_ 
 
 4. Evaluate domain adaptation
-    - Run evaluate script:
-        ```bash 
-        $ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B
-        ```
+    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 100 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
     - You can find the generated segmentation masks from the style-transfered images at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
     You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
