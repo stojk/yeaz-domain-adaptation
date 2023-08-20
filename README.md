@@ -270,7 +270,7 @@ Demo time (training + evaluation): ~2 h
     - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 200 --results_dir ./data/results_evaluate/ --metrics_path ./data/results_evaluate/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results_evaluate/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
     - You can find the generated segmentation masks from the style-transferred images at <i>./data/results_evaluate/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
-    You can use [YeaZ](https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
+    You can use YeaZ ([GitHub](https://github.com/rahi-lab/YeaZ-GUI), [Win app](https://drive.google.com/file/d/14484rtTHVNwWC0yLon4sqg_W3XrYzKcV/edit), [Mac app](https://drive.google.com/file/d/107uii-SMLW-JIb2WUscJCTT0PMQk-40Z/edit)) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results_evaluate/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
 
     The expected output of the YeaZ-micromap is shown in the figure below.
@@ -286,4 +286,4 @@ Demo time (training + evaluation): ~2 h
     - Run the predict script:```$ python predict.py --dataroot ./data/input_data_all/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --epoch EPOCH --results_dir ./data/results_predict/ --original_domain B ```
     </br>If you get GPU memory overflow due to the images' size, add ```--gpu_ids -1``` argument to use the CPU. Beware, this will increase the execution time.
     - Segmentation labels with the corresponding style-transfered images can be found at <i>./data/results_predict/images/fake_A</i>
-    - You can now use [YeaZ](https://github.com/rahi-lab/YeaZ-GUI) or YeaZ-compatible tool to view, adjust and validate the generated labels. 
+    - You can now use YeaZ ([GitHub](https://github.com/rahi-lab/YeaZ-GUI), [Win app](https://drive.google.com/file/d/14484rtTHVNwWC0yLon4sqg_W3XrYzKcV/edit), [Mac app](https://drive.google.com/file/d/107uii-SMLW-JIb2WUscJCTT0PMQk-40Z/edit)), adjust and validate the generated labels. 
