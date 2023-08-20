@@ -57,11 +57,15 @@ More specifically:
     * style transfer training between the images in the trainA and trainB folders
 
 2. *evaluate.py* script performs:
-    *  style transfer on source dataset images in one of the specified folders (testA or testB) using the pretrained CycleGAN
-    *  segmentation on the style-transferred images using the pretrained YeaZ weights, 
+    *  style transfer on source dataset images in one of the specified folders (testA or testB) using the pretrained CycleGAN weights from specified training epochs
+    *  segmentation on the style-transferred images using the pretrained YeaZ weights
     *  evaluation of segmentation quality based on the segmented images and GT masks
 
-    Both parts of the code rely on the following input data structure:
+3. *predict.py* script performs:
+    * style transfer on source dataset images in one of the specified folders (testA or testB) using the pretrained CycleGAN
+    * segmentation on the style-transferred images using the pretrained YeaZ weights
+
+    All three scripts rely on the following input data structure:
     ```
         input_data
         ├── trainA
@@ -87,7 +91,7 @@ More specifically:
     * testA(_masks) and testB(_masks) can be empty during CycleGAN training
     * trainA and trainB can be empty during the evaluation step
 
-3. Additionally, the helper function, *preprocessing.py*, prepares the raw input data, of variable sizes and contents, for style transfer training.
+4. Additionally, the helper function, *preprocessing.py*, prepares the raw input data, of variable sizes and contents, for style transfer training.
 
 
 ## Train CycleGAN
