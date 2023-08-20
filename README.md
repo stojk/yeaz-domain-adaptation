@@ -164,13 +164,13 @@ The rest of the arguments refer to either other trained CycleGAN specifications 
 To evaluate the style-transferred images and metrics, use the following command:
 ```bash
 $ python evaluate.py \
-    --dataroot GT_DATA_FOLDER \
+    --dataroot INPUT_DATA_FOLDER \
     --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \
     --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \
     --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS \
-    --min_epoch 1 \
-    --max_epoch 201 \
-    --epoch_step 5 \
+    --min_epoch MIN_EPOCH \
+    --max_epoch MAX_EPOCH \
+    --epoch_step EPOCH_STEP \
     --results_dir RESULTS_FOLDER \
     --metrics_path METRICS_PATH
 ```
@@ -187,7 +187,7 @@ Please replace placeholders with actual values and descriptions relevant to your
 | `--min_epoch`                   | First CycleGAN epoch for evaluation.                 | `1`           |
 | `--max_epoch`                   | Last CycleGAN epoch for evaluation.                  | `201`         |
 | `--epoch_step`                  | Evaluate every n-th epoch.                           | `5`           |
-| `--results_dir`                 | Output folder for style-transferred images.          | -             |
+| `--results_dir`                 | Output folder for style-transferred images and segmentation masks.          | -             |
 | `--metrics_path`                | Path to save evaluation metrics (AP).                | -             |
 
 #### Other Options
@@ -195,18 +195,52 @@ Please replace placeholders with actual values and descriptions relevant to your
 | Argument                       | Description                                           | Default Value |
 |--------------------------------|-------------------------------------------------------|---------------|
 | `--original_domain A or B`     | Target dataset to use test sets from.                | `A`           |
-| `--skip_style_transfer`         | Skip style transfer if already performed.            | -             |
-| `--skip_segmentation`           | Skip segmentation if already performed.              | -             |
-| `--skip_metrics`                | Skip metrics if already evaluated.                   | -             |
+| `--skip_style_transfer`         | (flag) Skip style transfer if already performed.            | -             |
+| `--skip_segmentation`           | (flag) Skip segmentation if already performed.              | -             |
+| `--skip_metrics`                | (flag) Skip metrics if already evaluated.                   | -             |
 | `--threshold`                   | Threshold used during YeaZ prediction.               | `0.5`         |
 | `--min_seed_dist`               | Minimal seed distance between cells for YeaZ prediction.  | `5`           |
 | `--metrics_patch_borders Y0 Y1 X0 X1` | Metrics patch borders, e.g., `480 736 620 876`.  | -             |
-| `--plot_metrics`                | Plot evaluation metrics.                            | -             |
+| `--plot_metrics`                | (flag) Plot evaluation metrics.                            | -             |
 
+## Predict the masks with the selected style mapping and YeaZ
+
+To perform style mapping from selected epoch followed by segmentation, use the following command:
+
+```bash
+$ python predict.py \
+    --dataroot INPUT_DATA_FOLDER \
+    --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \
+    --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \
+    --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS \
+    --epoch EPOCH \
+    --results_dir RESULTS_FOLDER
+```
+
+### Main Options
+
+| Argument                       | Description                                           | Default Value |
+|--------------------------------|-------------------------------------------------------|---------------|
+| `--dataroot`                    | Directory containing unlabeled input images.         | -             |
+| `--checkpoints_dir`             | Directory with CycleGAN training checkpoints.        | -             |
+| `--name`                        | Experiment name from CycleGAN training.              | -             |
+| `--path_to_yeaz_weights`        | Path to pretrained YeaZ weights.                     | -             |
+| `--epoch`                       | Epoch to use for style transfer.                     | -             |
+| `--results_dir`                 | Output folder for style-transferred images and segmentation masks.                  | -             |
+
+### Other Options
+
+| Argument                       | Description                                           | Default Value |
+|--------------------------------|-------------------------------------------------------|---------------|
+| `--original_domain A or B`     | Source dataset to use for prediction.                | `A`           |
+| `--skip_style_transfer`         | (flag) Skip style transfer if already performed.            | -             |
+| `--skip_segmentation`           | (flag) Skip segmentation if already performed.              | -             |
+| `--threshold`                   | Threshold used during YeaZ prediction.               | `0.5`         |
+| `--min_seed_dist`               | Minimal seed distance between cells for prediction.  | `5`           |
 
 <h1>Demo</h1>
 
-#### The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from the target to source domain, their segmentation in the source domain, and evaluation criteria (average precision, AP) for selecting the best style transfer epoch for the following segmentation task. Note that the demo is run on much smaller datasets, to allow testing on normal (desktop) PCs. For running on bigger datasets we recommend using scientific computing infrastructure (see more above in 'Systems requirements').
+The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from the target to source domain, their segmentation in the source domain, and evaluation criteria (average precision, AP) for selecting the best style transfer epoch for the following segmentation task. Note that the demo is run on much smaller datasets, to allow testing on normal (desktop) PCs. For running on bigger datasets we recommend using scientific computing infrastructure (see more above in 'Systems requirements').
 
 Source domain: PhaseContrast</br>
 Target domain: BrightField
@@ -229,17 +263,23 @@ Demo time (training + evaluation): ~2 h
     - All weights will be stored at _./data/checkpoints_ 
 
 4. Evaluate domain adaptation
-    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 200 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
-    - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
-    - You can find the generated segmentation masks from the style-transferred images at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
-    You can use YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
-    - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
+    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 200 --results_dir ./data/results_evaluate/ --metrics_path ./data/results_evaluate/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
+    - You can find the style transfer output at <i>./data/results_evaluate/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
+    - You can find the generated segmentation masks from the style-transferred images at <i>./data/results_evaluate/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
+    You can use [YeaZ](https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
+    - Average precision (AP) metrics can be found in the <i>./data/results_evaluate/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
 
-The expected output of the YeaZ-micromap is shown in the figure below.
-<p align="center">
-    
-![e4d8f0ad-01f6-42b7-b7d6-533dca1555cb](https://github.com/rahi-lab/YeaZ-micromap/assets/48595116/5fad61ed-0190-4d2d-8eca-f3a73b72068c)
+    The expected output of the YeaZ-micromap is shown in the figure below.
+    <p align="center">
 
+    ![e4d8f0ad-01f6-42b7-b7d6-533dca1555cb](https://github.com/rahi-lab/YeaZ-micromap/assets/48595116/5fad61ed-0190-4d2d-8eca-f3a73b72068c)
 
-</p>
-Note that the output of the demo run on your computer might not be identical to the one shown here due to the stochastic training of the CycleGAN.
+    </p>
+    Note that the output of the demo run on your computer might not be identical to the one shown here due to the stochastic training of the CycleGAN.
+
+5. Run the style transfer and segmentation on all unlabeled BrightField data
+    - Select the epoch with the best average precision (AP) from the previous step. We will use the CycleGAN weights from this epoch for style tranfer of the whole unlabeled dataset. Replace the _EPOCH_ placeholder in the call bellow with the selected epoch.
+    - Run the predict script:```$ python predict.py --dataroot ./data/input_data_all/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --epoch EPOCH --results_dir ./data/results_predict/ --original_domain B ```
+    </br>If you get GPU memory overflow due to the images' size, add ```--gpu_ids -1``` argument, to use the CPU. Beware, this will increase the execution time.
+    - Segmentation labels with the corresponding style-transfered images can be found at <i>./data/results_predict/images/fake_A</i>
+    - You can now use [YeaZ](https://github.com/rahi-lab/YeaZ-GUI) or YeaZ-compatible tool to view, adjust and validate the generated labels. 
