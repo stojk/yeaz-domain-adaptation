@@ -281,7 +281,7 @@ Demo time (training + evaluation): ~2 h
     </p>
     Note that the output of the demo run on your computer might not be identical to the one shown here due to the stochastic training of the CycleGAN.
 
-5. Run the style transfer and segmentation on all unlabeled BrightField data
+5. Predict style transfer and segmentation on all unlabeled BrightField data
     - Select the epoch with the best average precision (AP) from the previous step. We will use the CycleGAN weights from this epoch for style tranfer of the whole unlabeled dataset. Replace the _EPOCH_ placeholder in the call bellow with the selected epoch.
     - Run the predict script:```$ python predict.py --dataroot ./data/input_data_all/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --epoch EPOCH --results_dir ./data/results_predict/ --original_domain B ```
     </br>If you get GPU memory overflow due to the images' size, add ```--gpu_ids -1``` argument to use the CPU. Beware, this will increase the execution time.
