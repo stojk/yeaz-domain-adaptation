@@ -21,19 +21,19 @@ The code was written in Python 3.9 and tested on Windows 11 and RedHat Linux ser
 
 ### Hardware requirements   
 
-#### Minimum Requirements (for demo and prototyping)
+#### Minimum Requirements (the ones we used for demo and prototyping):
 
 - **Processor**: AMD Ryzen 5 5600H or equivalent
 - **Memory (RAM)**: 16GB
 - **Storage**: 100 GB available space
 - **Graphics**: NVIDIA GeForce RTX 3060, 6GB VRAM
 
-#### Recommended Requirements
+#### Recommended Requirements (the ones we used for training on full datasets, specified in the manuscript):
 
-- **Processor**: [TODO]
-- **Memory (RAM)**: [TODO]
-- **Storage**: [TODO]
-- **Graphics**: [TODO]
+- **Processor**: 2 Xeon-Gold processors running at 2.1 GHz, with 20 cores each
+- **Memory (RAM)**: 192 GB of DDR4 RAM
+- **Storage**: 3.2 TB NVMe local drive
+- **Graphics**: 2 NVIDIA V100 PCIe 32 GB GPUs (2×7TFLOPS)
 
 ### Installation steps
 
@@ -43,13 +43,13 @@ Installation time is less than 10 minutes.
  1. Clone the repository (```git clone https://github.com/rahi-lab/YeaZ-micromap```) or download it directly from the GitHub webpage
  2. Create a virtual environment ```conda create -n YeaZ-micromap python=3.9```
  3. Activate the virtual environment ```conda activate YeaZ-micromap```
- 4. Install pytorch ```pip install torch==2.0.0+cu117 torchvision==0.15.1+cu117 --index-url https://download.pytorch.org/whl/cu117```
- 5. Navigate to the folder where you cloned the YeaZ-micromap repository and install required packages ```pip install -r requirements.txt```
+ 4. Install PyTorch ```pip install torch==2.0.0+cu117 torchvision==0.15.1+cu117 --index-url https://download.pytorch.org/whl/cu117```
+ 5. Navigate to the folder where you cloned the YeaZ-micromap repository and install the required packages ```pip install -r requirements.txt```
 
 
 # Usage
 
-The code can be run from the command line and is split into two parts: (i) Training of the microscopy style-transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. 
+The code can be run from the command line and is split into two parts: (i) Training of the microscopy style transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. 
 
 More specifically:
 
@@ -87,7 +87,7 @@ More specifically:
     * testA(_masks) and testB(_masks) can be empty during CycleGAN training
     * trainA and trainB can be empty during the evaluation step
 
-3. Additonally, the helper function, *preprocessing.py*, prepares the raw input data, of variable sizes and contents, for style transfer training.
+3. Additionally, the helper function, *preprocessing.py*, prepares the raw input data, of variable sizes and contents, for style transfer training.
 
 
 ## Train CycleGAN
@@ -108,9 +108,9 @@ Please replace placeholders with actual values and descriptions relevant to your
 |------------------|------------------------------------------------------------|---------------|
 | `--src_path`     | Path to the folder containing the images.                  | -             |
 | `--dst_path`     | Path to the folder where patches will be saved.            | -             |
-| `--var_thr`      | Empirical variance threshold for empty patches detection.  | `500000`      |
-| `--scale_factor` | Factor to scale the images intensity by.                   | `1.0`         |
-| `--patch_size`   | Size of the output patches.                                | `256`         |
+| `--var_thr`      | Empirical variance threshold for filtering out empty patches detection.  | `500000`      |
+| `--scale_factor` | Factor to scale the brightness of input patches (this serves only for easier visualization in visdom if some images are too dark)              | `1.0`         |
+| `--patch_size`   | Size of the output square patches.                                | `256`         |
 
 ### 2. Start a visdom server
 ```bash
@@ -124,7 +124,7 @@ To initiate the training process, execute the following command:
 
 ```bash
 $ python train_cyclegan.py \
-    --dataroot GT_DATA_FOLDER \
+    --dataroot INPUT_DATA_FOLDER \
     --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER \
     --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING \
     --grid_lambdas_A L1 L2 \
@@ -136,7 +136,7 @@ Please replace placeholders with actual values and descriptions relevant to your
 
 | Argument                        | Description                                                                 | Default Value |
 |---------------------------------|-----------------------------------------------------------------------------|---------------|
-| `--dataroot GT_DATA_FOLDER`     | Directory containing training images.                                       | -             |
+| `--dataroot INPUT_DATA_FOLDER`     | Directory containing training images.                                       | -             |
 | `--checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER` | Directory to save trained models. Models are saved after each epoch by default. | -             |
 | `--name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING`            | Experiment name for future reference.                                        | -             |
 | `--grid_lambdas_A L1 L2 ...`    | Cycle consistency loss weights for A->B->A mapping.                          | `10`          |
@@ -153,13 +153,13 @@ If no lambda values are specified, default values (10, 10) will be used.
 | `--gpu_ids GPU_ID`      | `-1` for CPU, `0` for GPU0, `0 1` for GPU0 and GPU1. | `0`           |
 | `--batch_size BATCH_SIZE`| Batch size for training.                      | `1`           |
 | `--n_epochs N_EPOCHS`   | Number of training epochs.                     | `200`         |
-| `--n_epochs_decay N_EPOCHS_DECAY` | Epochs before linearly decaying the learning rate. | `200`         |
+| `--n_epochs_decay N_EPOCHS_DECAY` | Epochs before the learning rate linearly decays to zero | `200`         |
 | `--lr LR`               | Initial learning rate for Adam optimizer.      | `0.0002`      |
 
 ## Evaluate the mapping using pretrained YeaZ
-<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training (<i>checkpoints_dir</i>), the DNN weights used for training of the source dataset (<i>path_to_yeaz_weights</i>), among other things. 
+<p> For evaluating the segmentation accuracy, the user provides the directory with checkpoint weights from the CycleGAN training (<i>checkpoints_dir</i>) and the YeaZ DNN weights of a network trained on the target dataset (<i>path_to_yeaz_weights</i>).
 
-The rest of the arguments refer to either other trained CycleGAN specifications (_dataroot_, _name_, _model_) or to YeaZ segmentation (_threshold_, _min_seed_dist_, _min_epoch_, _max_epoch_, _epoch_step_). The dataroot folder contains the mask of the small annotated patch of the test image for only one of the domains (corresponding to the target set). If specified, a subpart (patch) of the big mask can be used for training evaluation instead of the whole mask. In that case _metrics_patch_borders_ should be supplied as an additional parameter. The resulting segmentation masks will be saved in _results_dir_ and the metrics of segmentation in _metrics_path_. </p>
+The rest of the arguments refer to either other trained CycleGAN specifications (_dataroot_, _name_) or to YeaZ segmentation parameters (_threshold_, _min_seed_dist_, _min_epoch_, _max_epoch_, _epoch_step_). The input_data folder contains the mask of the small annotated patch of the test image for only one of the domains (corresponding to the target set). If specified, a subpart (patch) of the big mask can be used for training evaluation instead of the whole mask. In that case _metrics_patch_borders_ should be supplied as an additional parameter. The resulting segmentation masks will be saved in _results_dir_ and the metrics of segmentation in _metrics_path_. </p>
 
 To evaluate the style-transferred images and metrics, use the following command:
 ```bash
@@ -206,16 +206,16 @@ Please replace placeholders with actual values and descriptions relevant to your
 
 <h1>Demo</h1>
 
-#### The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from target to source domain, their segmentation in the source domain, and evaluation criteria (average precission) for selecting the best style transfer epoch for the following segmentation task.
+#### The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from the target to source domain, their segmentation in the source domain, and evaluation criteria (average precision, AP) for selecting the best style transfer epoch for the following segmentation task. Note that the demo is run on much smaller datasets, to allow testing on normal (desktop) PCs. For running on bigger datasets we recommend using scientific computing infrastructure (see more above in 'Systems requirements').
 
 Source domain: PhaseContrast</br>
 Target domain: BrightField
 
-Demo time: ~2-3h
+Demo time (training + evaluation): ~2 h
 
 1. Data download
-    - Download the data from TODO
-    - Upack the downloaded file and place its contents into _./data/_ folder
+    - Download the data from the following link [Data](https://drive.google.com/drive/folders/1A-QI0IFacmlOfC52w1MzqtRtxnzGcBxc?usp=drive_link)
+    - Unpack the downloaded file and place its contents into _./data/_ folder
 
 2. Data preprocessing
     - Preprocess PhaseContrast images: ```$ python preprocess.py --src_path ./data/input_data/PhaseContrast_demo/ --dst_path ./data/input_data/trainA/ --scale_factor 10```
@@ -229,8 +229,17 @@ Demo time: ~2-3h
     - All weights will be stored at _./data/checkpoints_ 
 
 4. Evaluate domain adaptation
-    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 200 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B```
+    - Run evaluate script: ```$ python evaluate.py --dataroot ./data/input_data/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --max_epoch 200 --results_dir ./data/results/ --metrics_path ./data/results/metrics_lambda_A_10.0_lambda_B_10.0.csv --metrics_patch_borders 200 456 200 456 --plot_metrics --original_domain B ```
     - You can find the style transfer output at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p.png</i> by replacing the EPOCH placeholder
-    - You can find the generated segmentation masks from the style-transfered images at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
-    You can utilze YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
+    - You can find the generated segmentation masks from the style-transferred images at <i>./data/results/demo_lambda_A_10.0_lambda_B_10.0/test_[EPOCH]/images/fake_A/wt_FOV9_PhC_absent.nd2_channel_10p_mask.h5</i> by replacing the EPOCH placeholder.</br>
+    You can use YeaZ (download from https://github.com/rahi-lab/YeaZ-GUI) to visualize the masks.
     - Average precision (AP) metrics can be found in the <i>./data/results/</i> folder, files: <i>metrics_lambda_A_10.0_lambda_B_10.0.csv and metrics_lambda_A_10.0_lambda_B_10.0.png</i>
+
+The expected output of the YeaZ-micromap is shown in the figure below.
+<p align="center">
+    
+![e4d8f0ad-01f6-42b7-b7d6-533dca1555cb](https://github.com/rahi-lab/YeaZ-micromap/assets/48595116/5fad61ed-0190-4d2d-8eca-f3a73b72068c)
+
+
+</p>
+Note that the output of the demo run on your computer might not be identical to the one shown here due to the stochastic training of the CycleGAN.
