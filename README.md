@@ -280,6 +280,6 @@ Demo time (training + evaluation): ~2 h
 5. Run the style transfer and segmentation on all unlabeled BrightField data
     - Select the epoch with the best average precision (AP) from the previous step. We will use the CycleGAN weights from this epoch for style tranfer of the whole unlabeled dataset. Replace the _EPOCH_ placeholder in the call bellow with the selected epoch.
     - Run the predict script:```$ python predict.py --dataroot ./data/input_data_all/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --epoch EPOCH --results_dir ./data/results_predict/ --original_domain B ```
-    </br>If you get GPU memory overflow due to the images' size, add ```--gpu_ids -1``` argument, to use the CPU. Beware, this will increase the execution time.
+    </br>If you get GPU memory overflow due to the images' size, add ```--gpu_ids -1``` argument to use the CPU. Beware, this will increase the execution time.
     - Segmentation labels with the corresponding style-transfered images can be found at <i>./data/results_predict/images/fake_A</i>
     - You can now use [YeaZ](https://github.com/rahi-lab/YeaZ-GUI) or YeaZ-compatible tool to view, adjust and validate the generated labels. 

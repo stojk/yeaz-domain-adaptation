@@ -2,32 +2,22 @@
 """ Domain adaptation for segmentation of microscopy images using CycleGAN and YeaZ. 
 
 This script performs style transfer on images in opt.dataroot,
-then performs segmentation on the style transferred images, 
-and finally evaluates metrics on the segmented images.
+then performs segmentation on the style transferred images.
 
 Example:
-    $ python evaluate.py \
+    $ python predict.py \
         --dataroot GT_DATA_FOLDER \
         --checkpoints_dir GENERAL_CYCLE_GAN_TRAINING_FOLDER (i.e. D:/GAN_grid_search) \
         --name NAME_OF_SPECIFIC_CYCLEGAN_TRAINING (i.e. cyclegan_lambda_A_100_lambda_B_10_trial_2) \
-        --model cycle_gan \
-        --preprocess none \
         --path_to_yeaz_weights PATH_TO_YEAZ_WEIGHTS (i.e. ./yeaz/unet/weights_budding_BF.pt) \
+        --results_dir RESULTS_FOLDER \
         --threshold 0.5 \
-        --min_seed_dist 5 \
-        --min_epoch 1 \
-        --max_epoch 201 \
-        --epoch_step 5 \
-        --results_dir RESULTS_FOLDER (i.e. D:/GAN_grid_search/results)
-        --metrics_path METRICS_PATH (i.e. D:/GAN_grid_search/results/metrics.csv)
+        --epoch 200
 
     other options:
         --original_domain A (default) or B (i.e. if GT images are in B domain, specify B)
         --skip_style_transfer (i.e. if style transfer has already been performed, skip)
         --skip_segmentation (i.e. if segmentation has already been performed, skip)
-        --skip_metrics (i.e. if metrics have already been evaluated, skip)
-        --metrics_patch_borders Y0 Y1 X0 X1 (i.e. 480 736 620 876)
-        --plot_metrics
 
 """
 
