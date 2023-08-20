@@ -1,5 +1,7 @@
 <h1>Domain adaptation for segmentation of microscopy images using YeaZ-micromap</h1>
 
+#### This repository may not be up to date. Check out to the latest _YeaZ-micromap_ version [here](https://github.com/rahi-lab/YeaZ-micromap/tree/main).
+
 <h1>Overview</h1>
 YeaZ-micromap (YeaZ-microscopy mapper) adapts the look of images from the target set so that they can be segmented using a neural network trained for the segmentation of images from the source set.
 The tool consists of two modules: the style transfer module, which maps the look of images; and the YeaZ module, which segments the style-transferred images. As the style-transfer module, we used a generative adversarial network called CycleGAN. 
@@ -13,6 +15,12 @@ Paper: *Pan-microscope image segmentation based on a single training set*
 
 </p>
 
+
+<h2> Navigate to: </h2>
+
+* [Installation](https://github.com/rahi-lab/YeaZ-micromap/tree/main#installation)
+* [Usage](https://github.com/rahi-lab/YeaZ-micromap/tree/main#usage)
+* [Demo](https://github.com/rahi-lab/YeaZ-micromap/tree/main#demo)
 
 
 # Installation
@@ -28,7 +36,7 @@ The code was written in Python 3.9 and tested on Windows 11 and RedHat Linux ser
 - **Storage**: 100 GB available space
 - **Graphics**: NVIDIA GeForce RTX 3060, 6GB VRAM
 
-#### Recommended Requirements (the ones we used for training on full datasets, specified in the manuscript):
+#### Recommended Requirements (the ones we used for training on full datasets specified in the manuscript):
 
 - **Processor**: 2 Xeon-Gold processors running at 2.1 GHz, with 20 cores each
 - **Memory (RAM)**: 192 GB of DDR4 RAM
@@ -49,7 +57,7 @@ Installation time is less than 10 minutes.
 
 # Usage
 
-The code can be run from the command line and is split into two parts: (i) Training of the microscopy style transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation. 
+The code can be run from the command line and is split into two parts: (i) Training of the microscopy style transfer using CycleGAN (ii) Evaluation of the training by segmenting the mapped images using a pre-trained YeaZ network for segmentation and translation of the style by using the weights from the best epoch.
 
 More specifically:
 
@@ -242,14 +250,18 @@ $ python predict.py \
 | `--threshold`                   | Threshold used during YeaZ prediction.               | `0.5`         |
 | `--min_seed_dist`               | Minimal seed distance between cells for prediction.  | `5`           |
 
+
 <h1>Demo</h1>
 
-The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy images from the target to source domain, their segmentation in the source domain, and evaluation criteria (average precision, AP) for selecting the best style transfer epoch for the following segmentation task. Note that the demo is run on much smaller datasets, to allow testing on normal (desktop) PCs. For running on bigger datasets we recommend using scientific computing infrastructure (see more above in 'Systems requirements').
+The demo showcases YeaZ-micromap capabilities for style transfer of yeast microscopy, their segmentation in the source domain, and evaluation criteria (average precision, AP) for selecting the best style transfer epoch for the segmentation task. Note that the demo is run on much smaller datasets, to allow testing on normal (desktop) PCs. For running on bigger datasets we recommend using scientific computing infrastructure (see more in [Hadrware requirements](https://github.com/rahi-lab/YeaZ-micromap/tree/main#hardware-requirements)).
 
-Source domain: PhaseContrast</br>
-Target domain: BrightField
+Source domain, set A: Phase contrast</br>
+Target domain, set B: Brightfield
+YeaZ neural network was in this case trained only on the phase contrast images.
 
 Demo time (training + evaluation): ~2 h
+
+0. Install YeaZ-micromap (see installation instructions above)
 
 1. Data download
     - Download the data from the following link [Data](https://drive.google.com/drive/folders/1A-QI0IFacmlOfC52w1MzqtRtxnzGcBxc?usp=drive_link)
@@ -276,11 +288,12 @@ Demo time (training + evaluation): ~2 h
     The expected output of the YeaZ-micromap is shown in the figure below.
     <p align="center">
 
-    ![e4d8f0ad-01f6-42b7-b7d6-533dca1555cb](https://github.com/rahi-lab/YeaZ-micromap/assets/48595116/5fad61ed-0190-4d2d-8eca-f3a73b72068c)
+    ![c3f299a2-dfb7-437d-96dd-9dba898954a4](https://github.com/rahi-lab/YeaZ-micromap/assets/48595116/4b7d588e-eb66-46d8-a85d-cd97457b0afd)
 
     </p>
     Note that the output of the demo run on your computer might not be identical to the one shown here due to the stochastic training of the CycleGAN.
-
+    
+    
 5. Predict the style transfer and segmentation on all unlabeled BrightField data
     - Select the epoch with the best average precision (AP) from the previous step. We will use the CycleGAN weights from this epoch for style tranfer of the whole unlabeled dataset. Replace the _EPOCH_ placeholder in the call bellow with the selected epoch.
     - Run the predict script:```$ python predict.py --dataroot ./data/input_data_all/ --checkpoints_dir ./data/checkpoints/ --name demo_lambda_A_10.0_lambda_B_10.0 --path_to_yeaz_weights ./data/input_data/YeaZ_weights/weights_budding_PhC_multilab_0_1 --epoch EPOCH --results_dir ./data/results_predict/ --original_domain B ```
